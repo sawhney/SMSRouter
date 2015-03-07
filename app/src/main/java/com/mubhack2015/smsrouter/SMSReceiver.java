@@ -43,10 +43,21 @@ public class SMSReceiver extends BroadcastReceiver {
         SmsMessage messages[] = Telephony.Sms.Intents.getMessagesFromIntent(intent);
 
         for (SmsMessage msg : messages) {
-            if(msg.getDisplayMessageBody().startsWith("<SMSRouter>")) {
-                smsManager.sendTextMessage(msg.getOriginatingAddress(), null,
-                        msg.getDisplayMessageBody(), null, null);
-
+            String body = msg.getDisplayMessageBody();
+            if(body.startsWith("<SMSRouter>")) {
+                body = body.substring("<SMSRouter>".length());
+                body = decrypt(body);
+                if (body.startsWith("<from>")) {
+                    String rest = body.substring(body.indexOf("</from>")+"</from>".length());
+                    String from = body.substring(body.indexOf("<from>")+"<from>".length(),
+                            body.indexOf("</from>"));
+                    //TODO do something about it
+                } else if (body.startsWith("<num>")) {
+                    String rest = body.substring(body.indexOf("</num>")+"</num>".length());
+                    String to = body.substring(body.indexOf("<num>")+"<num>".length(),
+                            body.indexOf("</num>"));
+                    smsManager.sendTextMessage(to, null, rest, null, null);
+                }
             }
         }
     }

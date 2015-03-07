@@ -52,8 +52,9 @@ public class MainActivity extends ActionBarActivity {
         }
 
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        String mPhoneNumber = tMgr.getLine1Number();
-        Log.e("WWASD", mPhoneNumber);
+        //TODO make sure to strip the 0 and add +44 to make the formatting uniform.
+        String from = tMgr.getLine1Number();
+        Log.e("WWASD", from);
     }
 
 
@@ -120,7 +121,7 @@ public class MainActivity extends ActionBarActivity {
 
 
     void formatAndSend(String message, String to, String from) {
-        String enc = encrypt(message);
+        String enc = encrypt("<from>" + from + "</from>" + message);
         enc = encrypt("<num>" + to + "</num>" + enc);
 
         for (int i = 0; i < numbers.size() - 1; i++) {
