@@ -5,3 +5,4 @@
 .DS_Store
 /build
 rsa_testing_keys/router.json
+app/src/main/res/xml/network_db.xml
