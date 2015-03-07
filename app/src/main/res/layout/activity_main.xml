@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:inputType="phone"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/numberText"
         android:layout_above="@+id/messageText"
         android:layout_alignEnd="@+id/sendButton"
         android:layout_toEndOf="@+id/textView" />
@@ -46,7 +46,7 @@
         android:id="@+id/textView"
         android:textSize="20sp"
         android:padding="8dp"
-        android:layout_alignTop="@+id/editText"
+        android:layout_alignTop="@+id/numberText"
         android:layout_alignStart="@+id/messageText" />
 
 
