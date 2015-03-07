@@ -49,5 +49,13 @@
         android:layout_alignTop="@+id/numberText"
         android:layout_alignStart="@+id/messageText" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/outputText"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
 
 </RelativeLayout>
