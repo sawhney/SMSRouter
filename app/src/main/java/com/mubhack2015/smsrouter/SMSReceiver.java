@@ -46,31 +46,9 @@ public class SMSReceiver extends BroadcastReceiver {
             if(msg.getDisplayMessageBody().startsWith("<SMSRouter>")) {
                 smsManager.sendTextMessage(msg.getOriginatingAddress(), null,
                         msg.getDisplayMessageBody(), null, null);
-                String body = "Hello Alistair";
-                String enc = encrypt(body);
-                String dec = decrypt(enc);
-                Log.e("WPWPWP", "Msg: " + body + "\n\n" +
-                        "Enc: " + enc + "\n\n" +
-                        "Dec: " + dec + "\n\n");
-                Log.e("WWWPW", msg.getDisplayOriginatingAddress());
-//                TelephonyManager tMgr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-//                String mPhoneNumber = tMgr.getLine1Number();
-//                Log.e("WWASD", mPhoneNumber);
+
             }
         }
-    }
-
-    public String encrypt(String message) {
-        String encrypted = null;
-        try {
-            Cipher cipher = Cipher.getInstance("RSA");
-            PublicKey pKey = loadPublicKey(context.getResources().openRawResource(R.raw.public1));
-            cipher.init(Cipher.ENCRYPT_MODE, pKey);
-            encrypted = Base64.encodeToString(cipher.doFinal(message.getBytes()), Base64.DEFAULT);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return encrypted;
     }
 
     public String decrypt(String enc) {
@@ -98,18 +76,6 @@ public class SMSReceiver extends BroadcastReceiver {
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
                 encodedPrivateKey);
         return keyFactory.generatePrivate(privateKeySpec);
-    }
-
-    public PublicKey loadPublicKey(InputStream is)
-            throws IOException, NoSuchAlgorithmException,
-            InvalidKeySpecException {
-
-        byte[] encodedPublicKey = new byte[is.available()];
-        while (is.read(encodedPublicKey) != -1) {}
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
-                encodedPublicKey);
-        return keyFactory.generatePublic(publicKeySpec);
     }
 
 

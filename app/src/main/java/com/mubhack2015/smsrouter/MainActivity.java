@@ -3,17 +3,29 @@ package com.mubhack2015.smsrouter;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.Context;
 import android.support.v7.app.ActionBarActivity;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
+import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+
+import javax.crypto.Cipher;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -21,6 +33,8 @@ public class MainActivity extends ActionBarActivity {
     //private HashMap<String, String> publicKeys = new HashMap<String, String>();
     //private HashMap<String, String> privateKeys = new HashMap<String, String>();
     private ArrayList<String> numbers = new ArrayList<String>();
+    final SmsManager smsManager = SmsManager.getDefault();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,12 +44,16 @@ public class MainActivity extends ActionBarActivity {
         // Read the numbers store and show what's in it
         readNetworkDb(this);
 
-        TextView txt = (TextView)findViewById(R.id.outputText);
+        TextView txt = (TextView) findViewById(R.id.outputText);
         txt.setText("");
 
         for (String num : numbers) {
             txt.append(num + "\n");
         }
+
+        TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        String mPhoneNumber = tMgr.getLine1Number();
+        Log.e("WWASD", mPhoneNumber);
     }
 
 
@@ -98,6 +116,50 @@ public class MainActivity extends ActionBarActivity {
         } catch (Exception e) {
             Log.e("Parser exception", "Unknown exception");
         }
+    }
+
+
+    void formatAndSend(String message, String to, String from) {
+        String enc = encrypt(message);
+        enc = encrypt("<num>" + to + "</num>" + enc);
+
+        for (int i = 0; i < numbers.size() - 1; i++) {
+            String num = numbers.get(i);
+            if (num.equals(to) || num.equals(from))
+                continue;
+
+            enc = encrypt("<num>" + num + "</num>" + enc);
+        }
+
+        enc = "<SMSRouter>" + enc;
+        smsManager.sendTextMessage(numbers.get(numbers.size() - 1), null, enc, null, null);
+
+    }
+
+    public String encrypt(String message) {
+        String encrypted = null;
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+            PublicKey pKey = loadPublicKey(getResources().openRawResource(R.raw.public1));
+            cipher.init(Cipher.ENCRYPT_MODE, pKey);
+            encrypted = Base64.encodeToString(cipher.doFinal(message.getBytes()), Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return encrypted;
+    }
+
+    public PublicKey loadPublicKey(InputStream is)
+            throws IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
+
+        byte[] encodedPublicKey = new byte[is.available()];
+        while (is.read(encodedPublicKey) != -1) {
+        }
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
+                encodedPublicKey);
+        return keyFactory.generatePublic(publicKeySpec);
     }
 }
 
