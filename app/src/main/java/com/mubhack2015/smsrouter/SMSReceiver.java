@@ -16,8 +16,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -30,70 +34,78 @@ import android.util.Base64;
 public class SMSReceiver extends BroadcastReceiver {
 
     final SmsManager smsManager = SmsManager.getDefault();
-
+    public static String DEBUG_TAG = "SMSReceiver";
+    private Context context;
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context c, Intent intent) {
+        context = c;
         SmsMessage messages[] = Telephony.Sms.Intents.getMessagesFromIntent(intent);
 
         for (SmsMessage msg : messages) {
             if(msg.getDisplayMessageBody().startsWith("<SMSRouter>")) {
                 smsManager.sendTextMessage(msg.getOriginatingAddress(), null,
                         msg.getDisplayMessageBody(), null, null);
+                String body = "Hello Alistair";
+                String enc = encrypt(body);
+                String dec = decrypt(enc);
+                Log.e("WPWPWP", "Msg: " + body + "\n\n" +
+                        "Enc: " + enc + "\n\n" +
+                        "Dec: " + dec + "\n\n");
             }
         }
     }
 
-    public void decrypt(Context context, String message) {
+    public String encrypt(String message) {
+        String encrypted = null;
         try {
             Cipher cipher = Cipher.getInstance("RSA");
-//            PrivateKey key = loadPrivateKey(context.getResources().openRawResource());
-//            cipher.init(Cipher.DECRYPT_MODE, key);
+            PublicKey pKey = loadPublicKey(context.getResources().openRawResource(R.raw.public1));
+            cipher.init(Cipher.ENCRYPT_MODE, pKey);
+            encrypted = Base64.encodeToString(cipher.doFinal(message.getBytes()), Base64.DEFAULT);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        return encrypted;
     }
 
-    public static PrivateKey loadPrivateKey(String fileName)
-            throws IOException, GeneralSecurityException {
-        PrivateKey key = null;
-        InputStream is = null;
+    public String decrypt(String enc) {
+        String decrypted = null;
         try {
-            is = fileName.getClass().getResourceAsStream("/" + fileName);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            StringBuilder builder = new StringBuilder();
-            boolean inKey = false;
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                if (!inKey) {
-                    if (line.startsWith("-----BEGIN ") &&
-                            line.endsWith(" PRIVATE KEY-----")) {
-                        inKey = true;
-                    }
-                    continue;
-                }
-                else {
-                    if (line.startsWith("-----END ") &&
-                            line.endsWith(" PRIVATE KEY-----")) {
-                        inKey = false;
-                        break;
-                    }
-                    builder.append(line);
-                }
-            }
-
-            byte[] encoded = Base64.decode(builder.toString(), Base64.DEFAULT);
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            key = kf.generatePrivate(keySpec);
-        } finally {
-            closeSilent(is);
+            Cipher cipher = Cipher.getInstance("RSA");
+            PrivateKey sKey = loadPrivateKey(context.getResources().openRawResource(R.raw.private1));
+            cipher.init(Cipher.DECRYPT_MODE, sKey);
+            byte[] encBytes = Base64.decode(enc, Base64.DEFAULT);
+            decrypted = new String(cipher.doFinal(encBytes));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return key;
+        return decrypted;
     }
 
-    public static void closeSilent(final InputStream is) {
-        if (is == null) return;
-        try { is.close(); } catch (Exception ign) {}
+    public PrivateKey loadPrivateKey(InputStream is)
+            throws IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
+
+        byte[] encodedPrivateKey = new byte[is.available()];
+        while (is.read(encodedPrivateKey) != -1) {}
+        // Generate KeyPair.
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
+                encodedPrivateKey);
+        return keyFactory.generatePrivate(privateKeySpec);
     }
+
+    public PublicKey loadPublicKey(InputStream is)
+            throws IOException, NoSuchAlgorithmException,
+            InvalidKeySpecException {
+
+        byte[] encodedPublicKey = new byte[is.available()];
+        while (is.read(encodedPublicKey) != -1) {}
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
+                encodedPublicKey);
+        return keyFactory.generatePublic(publicKeySpec);
+    }
+
 
 }
