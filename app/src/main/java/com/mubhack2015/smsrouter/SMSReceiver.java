@@ -41,23 +41,25 @@ public class SMSReceiver extends BroadcastReceiver {
     public void onReceive(Context c, Intent intent) {
         context = c;
         SmsMessage messages[] = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+        String body = "";
 
         for (SmsMessage msg : messages) {
-            String body = msg.getDisplayMessageBody();
-            if(body.startsWith("<SMSRouter>")) {
-                body = body.substring("<SMSRouter>".length());
-                body = decrypt(body);
-                if (body.startsWith("<from>")) {
-                    String rest = body.substring(body.indexOf("</from>")+"</from>".length());
-                    String from = body.substring(body.indexOf("<from>")+"<from>".length(),
-                            body.indexOf("</from>"));
-                    //TODO do something about it
-                } else if (body.startsWith("<num>")) {
-                    String rest = body.substring(body.indexOf("</num>")+"</num>".length());
-                    String to = body.substring(body.indexOf("<num>")+"<num>".length(),
-                            body.indexOf("</num>"));
-                    smsManager.sendTextMessage(to, null, rest, null, null);
-                }
+            body += msg.getDisplayMessageBody();
+        }
+        Log.e("SMSReceiver", body);
+        if(body.startsWith("<SMSRouter>")) {
+            body = body.substring("<SMSRouter>".length());
+            body = decrypt(body);
+            if (body.startsWith("<from>")) {
+                String rest = body.substring(body.indexOf("</from>")+"</from>".length());
+                String from = body.substring(body.indexOf("<from>")+"<from>".length(),
+                        body.indexOf("</from>"));
+                //TODO do something about it
+            } else if (body.startsWith("<num>")) {
+                String rest = body.substring(body.indexOf("</num>")+"</num>".length());
+                String to = body.substring(body.indexOf("<num>")+"<num>".length(),
+                        body.indexOf("</num>"));
+                smsManager.sendTextMessage(to, null, rest, null, null);
             }
         }
     }
