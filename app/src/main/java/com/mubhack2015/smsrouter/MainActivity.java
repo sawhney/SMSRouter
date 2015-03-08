@@ -14,6 +14,9 @@ import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -44,12 +47,13 @@ public class MainActivity extends ActionBarActivity {
         // Read the numbers store and show what's in it
         readNetworkDb(this);
 
-        TextView txt = (TextView) findViewById(R.id.outputText);
-        txt.setText("");
+        ListView list = (ListView) findViewById(R.id.numbersList);
+        Spinner spinner = (Spinner) findViewById(R.id.numberSpinner);
 
-        for (String num : numbers) {
-            txt.append(num + "\n");
-        }
+        final ArrayAdapter adapter = new ArrayAdapter(this,
+                android.R.layout.simple_list_item_1, numbers);
+        list.setAdapter(adapter);
+        spinner.setAdapter(adapter);
 
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         //TODO make sure to strip the 0 and add +44 to make the formatting uniform.
