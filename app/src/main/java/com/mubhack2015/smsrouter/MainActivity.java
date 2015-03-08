@@ -15,17 +15,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -52,11 +60,23 @@ public class MainActivity extends ActionBarActivity {
         }
 
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        //TODO make sure to strip the 0 and add +44 to make the formatting uniform.
         String from = tMgr.getLine1Number();
+
+        if (from.isEmpty())
+            from = "+447577653178";
+
+        Log.e("WWASD", from);
+
         if (from.charAt(0) == '0')
             from = "+44" + from.substring(1);
-        Log.e("WWASD", from);
+        if(from.equals("+447521374125"))
+            formatAndSend("This is a test message.", "+447577653178", from);
+//            smsManager.sendTextMessage("+447577653178", null,
+//                "<SMSRouter><IV>kajkz3zyVah9XvveoNGrHg==\n" +
+//                "    </IV>N7JNXlsN6hjMKWYNkz8SxA72rc/HE38aKLya0hKPy0tofjxQ5vCcqslDbpJ6s1Ur9g3oV/rfn2/m\n" +
+//                "    yw0B5fv6FLy5eRBuw6vnUJaKW6iqlOPDAFUwQ0jzsISDuR4vKH5wem1R8TcUWhnYBEQ8dp9VLDUi\n" +
+//                "    Oiu1C38Can+w/Xu3dSw=", null, null);
+
     }
 
 
@@ -135,10 +155,13 @@ public class MainActivity extends ActionBarActivity {
         }
 
         enc = "<SMSRouter>" + enc;
+        Log.e("SMSRouter", enc);
         smsManager.sendTextMessage(numbers.get(numbers.size() - 1), null, enc, null, null);
-
+        Toast.makeText(getApplicationContext(), "Sent " + enc + "to: " + numbers.get(numbers.size() - 1), Toast.LENGTH_SHORT).show();
     }
 
+
+    /*
     public String encrypt(String message) {
         String encrypted = null;
         try {
@@ -163,7 +186,33 @@ public class MainActivity extends ActionBarActivity {
         X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
                 encodedPublicKey);
         return keyFactory.generatePublic(publicKeySpec);
+    } */
+
+    public static String encrypt(String plainText) {
+        return plainText;
+        /*
+        try {
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            KeySpec spec = new PBEKeySpec("supersecurepassword".toCharArray(), "AAAAAAAA".getBytes(), 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secret);
+            AlgorithmParameters params = cipher.getParameters();
+            byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
+            byte[] ciphertext = cipher.doFinal(plainText.getBytes("UTF-8"));
+            String ivtxt = "<IV>" + Base64.encodeToString(iv, Base64.DEFAULT) + "</IV>";
+            // = Base64.encodeToString(secret.getEncoded(), Base64.DEFAULT);
+            String ctxt = ivtxt + Base64.encodeToString(ciphertext, Base64.DEFAULT);
+            return ctxt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return plainText;
+        */
+
     }
+
 }
 
 /*
