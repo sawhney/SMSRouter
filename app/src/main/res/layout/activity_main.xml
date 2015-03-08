@@ -29,16 +29,6 @@
         android:layout_alignParentEnd="true"
         android:padding="2dp" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="phone"
-        android:ems="10"
-        android:id="@+id/numberText"
-        android:layout_above="@+id/messageText"
-        android:layout_alignEnd="@+id/sendButton"
-        android:layout_toEndOf="@+id/textView" />
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,16 +36,55 @@
         android:id="@+id/textView"
         android:textSize="20sp"
         android:padding="8dp"
-        android:layout_alignTop="@+id/numberText"
-        android:layout_alignStart="@+id/messageText" />
+        android:layout_alignStart="@+id/messageText"
+        android:layout_alignBottom="@+id/numberSpinner"
+        android:layout_alignTop="@+id/numberSpinner" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/numberSpinner"
+        android:layout_above="@+id/messageText"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/textView"
+        android:spinnerMode="dropdown" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/numbersList"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/heading"
+        android:layout_above="@+id/textView2" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/outputText"
+        android:text="@string/network_header"
+        android:id="@+id/heading"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:textSize="20sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/from"
+        android:id="@+id/textView2"
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:layout_alignBottom="@+id/fromNumberText"
         android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:ems="10"
+        android:id="@+id/fromNumberText"
+        android:layout_above="@+id/numberSpinner"
+        android:layout_alignEnd="@+id/sendButton"
+        android:layout_toEndOf="@+id/textView2" />
 
 
 </RelativeLayout>
