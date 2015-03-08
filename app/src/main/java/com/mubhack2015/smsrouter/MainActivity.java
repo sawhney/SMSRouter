@@ -58,6 +58,8 @@ public class MainActivity extends ActionBarActivity {
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         //TODO make sure to strip the 0 and add +44 to make the formatting uniform.
         String from = tMgr.getLine1Number();
+        if (from.charAt(0) == '0')
+            from = "+44" + from.substring(1);
         Log.e("WWASD", from);
     }
 
