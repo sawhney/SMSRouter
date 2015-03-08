@@ -14,7 +14,9 @@ import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -56,7 +58,7 @@ public class MainActivity extends ActionBarActivity {
         readNetworkDb(this);
 
         ListView list = (ListView) findViewById(R.id.numbersList);
-        Spinner spinner = (Spinner) findViewById(R.id.numberSpinner);
+        final Spinner spinner = (Spinner) findViewById(R.id.numberSpinner);
 
         final ArrayAdapter adapter = new ArrayAdapter(this,
                 android.R.layout.simple_list_item_1, numbers);
@@ -66,15 +68,33 @@ public class MainActivity extends ActionBarActivity {
         TelephonyManager tMgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         String from = tMgr.getLine1Number();
 
-        if (from.isEmpty())
-            from = "+447577653178";
+        //if (from.isEmpty())
+        //    from = "+447577653178";
 
         Log.e("WWASD", from);
 
-        if (from.charAt(0) == '0')
+        final TextView msgTxt = (TextView) findViewById(R.id.messageText);
+        final TextView fromTxt = (TextView) findViewById(R.id.fromNumberText);
+
+        if (!from.isEmpty() && from.charAt(0) == '0')
             from = "+44" + from.substring(1);
-        if(from.equals("+447521374125"))
-            formatAndSend("This is a test message.", "+447577653178", from);
+
+        fromTxt.setText(from);
+
+
+        Button btn = (Button) findViewById(R.id.sendButton);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                formatAndSend(msgTxt.getText().toString(), spinner.getSelectedItem().toString(),
+                        fromTxt.getText().toString());
+            }
+        });
+//
+//        if (from.charAt(0) == '0')
+//            from = "+44" + from.substring(1);
+//        if(from.equals("+447521374125"))
+//            formatAndSend("This is a test message.", "+447577653178", from);
 //            smsManager.sendTextMessage("+447577653178", null,
 //                "<SMSRouter><IV>kajkz3zyVah9XvveoNGrHg==\n" +
 //                "    </IV>N7JNXlsN6hjMKWYNkz8SxA72rc/HE38aKLya0hKPy0tofjxQ5vCcqslDbpJ6s1Ur9g3oV/rfn2/m\n" +
@@ -147,21 +167,24 @@ public class MainActivity extends ActionBarActivity {
 
 
     void formatAndSend(String message, String to, String from) {
+        ArrayList<String> numsCpy = new ArrayList<String>();
+        for (String num : numbers) {
+            if (num.equals(to) || num.equals(from)) continue;
+            numsCpy.add(num);
+        }
+
         String enc = encrypt("<from>" + from + "</from>" + message);
         enc = encrypt("<num>" + to + "</num>" + enc);
 
-        for (int i = 0; i < numbers.size() - 1; i++) {
-            String num = numbers.get(i);
-            if (num.equals(to) || num.equals(from))
-                continue;
-
+        for (int i = 0; i < numsCpy.size() - 1; i++) {
+            String num = numsCpy.get(i);
             enc = encrypt("<num>" + num + "</num>" + enc);
         }
 
         enc = "<SMSRouter>" + enc;
         Log.e("SMSRouter", enc);
-        smsManager.sendTextMessage(numbers.get(numbers.size() - 1), null, enc, null, null);
-        Toast.makeText(getApplicationContext(), "Sent " + enc + "to: " + numbers.get(numbers.size() - 1), Toast.LENGTH_SHORT).show();
+        smsManager.sendTextMessage(numsCpy.get(numsCpy.size() - 1), null, enc, null, null);
+        Toast.makeText(getApplicationContext(), "Sent " + enc + "to: " + numsCpy.get(numsCpy.size() - 1), Toast.LENGTH_SHORT).show();
     }
 
 
